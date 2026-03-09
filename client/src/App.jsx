@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+import api from "./api/axios";
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
@@ -13,7 +14,7 @@ export default function App() {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const res = await axios.get('/api/tasks');
+        const res = await api.get('/tasks');
         setTasks(res.data);
         setError(null);
       } catch (err) {
@@ -33,7 +34,7 @@ export default function App() {
     if (!trimmed) return;
 
     try {
-      const res = await axios.post('/api/tasks', {
+      const res = await api.post('/tasks', {
         title: trimmed,
         status: 'pending',
         completed: false
@@ -49,7 +50,7 @@ export default function App() {
 
   const toggleTask = async (id) => {
     try {
-      const res = await axios.patch(`/api/tasks/${id}/toggle`);
+      const res = await api.patch(`/tasks/${id}/toggle`);
       setTasks((prev) =>
         prev.map((task) => (task._id === id ? res.data : task))
       );
@@ -62,7 +63,7 @@ export default function App() {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`/api/tasks/${id}`);
+      await api.delete(`/tasks/${id}`);
       setTasks((prev) => prev.filter((task) => task._id !== id));
       setError(null);
     } catch (err) {
