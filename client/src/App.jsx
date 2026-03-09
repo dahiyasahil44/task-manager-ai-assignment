@@ -1,37 +1,74 @@
-import { useState } from 'react';
-
-const initialTasks = [
-  { id: 1, title: 'Set up backend API', completed: true },
-  { id: 2, title: 'Create React frontend', completed: false },
-  { id: 3, title: 'Wire up task actions', completed: false }
-];
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function App() {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleAddTask = (e) => {
+  // Load tasks from backend on mount
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get('/api/tasks');
+        setTasks(res.data);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load tasks');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const handleAddTask = async (e) => {
     e.preventDefault();
     const trimmed = newTask.trim();
     if (!trimmed) return;
-    setTasks((prev) => [
-      ...prev,
-      { id: Date.now(), title: trimmed, completed: false }
-    ]);
-    setNewTask('');
+
+    try {
+      const res = await axios.post('/api/tasks', {
+        title: trimmed,
+        status: 'pending',
+        completed: false
+      });
+      setTasks((prev) => [res.data, ...prev]);
+      setNewTask('');
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to add task');
+    }
   };
 
-  const toggleTask = (id) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  const toggleTask = async (id) => {
+    try {
+      const res = await axios.patch(`/api/tasks/${id}/toggle`);
+      setTasks((prev) =>
+        prev.map((task) => (task._id === id ? res.data : task))
+      );
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to update task');
+    }
   };
 
-  const deleteTask = (id) => {
-    setTasks((prev) => prev.filter((task) => task.id !== id));
+  const deleteTask = async (id) => {
+    try {
+      await axios.delete(`/api/tasks/${id}`);
+      setTasks((prev) => prev.filter((task) => task._id !== id));
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to delete task');
+    }
   };
 
   const filteredTasks = tasks.filter((task) => {
@@ -61,6 +98,8 @@ export default function App() {
             <button type="submit">Add</button>
           </form>
         </section>
+
+        {error && <div className="empty-state">{error}</div>}
 
         <section className="task-controls">
           <div className="filters">
@@ -95,20 +134,20 @@ export default function App() {
             <ul className="task-list">
               {filteredTasks.map((task) => (
                 <li
-                  key={task.id}
+                  key={task._id}
                   className={`task-item ${task.completed ? 'completed' : ''}`}
                 >
                   <label>
                     <input
                       type="checkbox"
                       checked={task.completed}
-                      onChange={() => toggleTask(task.id)}
+                      onChange={() => toggleTask(task._id)}
                     />
                     <span className="task-title">{task.title}</span>
                   </label>
                   <button
                     className="delete-button"
-                    onClick={() => deleteTask(task.id)}
+                    onClick={() => deleteTask(task._id)}
                     aria-label="Delete task"
                   >
                     ×
@@ -117,6 +156,8 @@ export default function App() {
               ))}
             </ul>
           )}
+
+          {loading && <div className="empty-state">Loading tasks...</div>}
         </section>
       </main>
     </div>
