@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// AI-generated, reviewed and modified.
 const taskSchema = new mongoose.Schema(
   {
     title: {

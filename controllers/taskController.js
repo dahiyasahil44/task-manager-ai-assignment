@@ -1,4 +1,5 @@
 const Task = require('../models/Task');
+// AI-generated
 
 // Create a new task
 exports.createTask = async (req, res) => {
@@ -23,7 +24,7 @@ exports.createTask = async (req, res) => {
   }
 };
 
-// Get all tasks
+// AI-modified.
 exports.getTasks = async (req, res) => {
   try {
     const tasks = await Task.find().sort({ createdAt: -1 });
@@ -48,7 +49,7 @@ exports.getTaskById = async (req, res) => {
   }
 };
 
-// Update a task (full update)
+// AI-generated, reviewed and modified
 exports.updateTask = async (req, res) => {
   try {
     const { title, description, status, completed } = req.body;
