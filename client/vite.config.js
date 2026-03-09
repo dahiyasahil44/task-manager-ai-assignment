@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     open: true,
     proxy: {
-      '/api': 'http://localhost:5000'
+      '/api': 'https://task-manager-ai-assignment-2yge.onrender.com/'
     }
   }
 });
